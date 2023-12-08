@@ -1,5 +1,5 @@
 CC=gcc
-STD=-std=c99
+STD=-std=c89
 LDFLAGS=-lm
 PPFLAGS=-I./sabene/include/
 

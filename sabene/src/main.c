@@ -5,7 +5,7 @@
 
 int main(void)
 {
-    rom program = {};
+    sprogram_t program = {};
 
     sdevice_t *sab = sabinit(program);
 

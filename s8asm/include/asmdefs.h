@@ -1,5 +1,5 @@
-#ifndef SAB_MEM_H
-#define SAB_MEM_H
+#ifndef S8ASM_DEFS_H
+#define S8ASM_DEFS_H
 
 #define BOOT_SEGMENT_BASE                       0x0000
 #define BOOT_SEGMENT_LIMIT                      0x0200
@@ -38,12 +38,30 @@
 #define VIDEO_DATA_SEGMENT_SIZE                 (VIDEO_DATA_SEGMENT_LIMIT - VIDEO_DATA_SEGMENT_BASE)
 #define FREE_SEGMENT_SIZE                       (FREE_SEGMENT_LIMIT - FREE_SEGMENT_BASE)
 
-typedef char vram[VIDEO_MEMORY_SEGMENT_SIZE + VGA_COLOR_SEGMENT_SIZE + VIDEO_DATA_SEGMENT_SIZE];
-typedef char disk[DISK_SEGMENT_SIZE];
-typedef char obram[DATA_SEGMENT_SIZE + STACK_SEGMENT_SIZE];
-typedef char rom[PROGRAM_SEGMENT_SIZE];
-typedef char bootrom[BOOT_SEGMENT_SIZE];
+typedef enum token_type
+{
+    IDENTIFIER, INSTRUCTION, SEPARATOR, PUNCTUATOR, OPERATOR, LITERAL,
+    COMMENT, KEYWORD
+} token_type_t;
 
-typedef char sprogram_t[DATA_SEGMENT_SIZE + PROGRAM_SEGMENT_SIZE];
+typedef struct token 
+{
+    unsigned char ttype; /* Token Type */
+    const char *value; /* Value of the token */
+} token_t;
 
-#endif /* SAB_MEM_H */
+typedef struct label
+{
+    unsigned short address;
+    const char *name;
+    char *value;
+} label_t;
+
+typedef struct program 
+{
+    token_t tokens[255]; /* max 255 tokens (expand later) */
+    label_t labels[255]; /* max 255 labels (expand later) */
+    char byteCode[DATA_SEGMENT_SIZE + PROGRAM_SEGMENT_SIZE];
+} program_t;
+
+#endif /* DEFS_H */

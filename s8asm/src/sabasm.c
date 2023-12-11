@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* get the total number of occurences of needle in haystack. */
+static int getcharcount(char *haystack, char needle);
+
 static void checknumber(label_t *label, char *directive, char *line);
 
 static int getnamelength(char *line);
@@ -63,6 +66,20 @@ secondpass(char *const src, program_t *program)
 }
 
 /* STATIC FUNCTION DEFS */
+int
+getcharcount(char *haystack, char needle)
+{
+    int i = 0;
+    int count = 0;
+    for(; i < strlen(haystack) + 1; i++)
+    {
+        if(haystack[i] == needle)
+            count++;
+    }
+
+    return count + 1;
+}
+
 void 
 checknumber(label_t *label, char *directive, char *line)
 {
@@ -80,17 +97,10 @@ checknumber(label_t *label, char *directive, char *line)
 
         } else if(strncmp(directive, "DW", 2) == 0)
         {
-            /* Check for comma separated defintions (WIP) */
-            char *comma = strtok(line, ",");
-            int count = 0;
-            while(comma != NULL)
-            {
-                count++;
-                comma = strtok(NULL, ",");
-            }
-
+            /* Check for comma separated definitions */
+            int count = getcharcount(line, ',');
             label->value = calloc(2 * count, sizeof(char)); /* TODO: prototype comma-separated word definition */
-            int value = 0;
+            int value = 0; /* the integral value to store into the label's value */
 
             /* We cannot assume that the number has the hexadecimal denotifier(s), we must check for them */
             if(IS_HEX(line, index))
@@ -99,8 +109,8 @@ checknumber(label_t *label, char *directive, char *line)
                 value = strtol(line, NULL, 10);
 
             /* Storing the data into the label's value array in little endian format */
-            label->value[0] = (value & 0x00FF);
-            label->value[1] = (value & 0xFF00) >> 8;
+            label->value[0] = (value & 0xFF00) >> 8;
+            label->value[1] = (value & 0x00FF);
         } else if(strncmp(directive, "DF", 2) == 0) 
         {
             /* TODO: IEEE 754 standard algorithm */
@@ -159,7 +169,11 @@ processline(label_t *label, char *line)
     /* get the value of the directive */
     char *directive = strstr(line, directives[label->directive]);
     int index = (directive - line);
-    line += index + strlen(directives[label->directive]) + 1; /* modify the line pointer to make it easier to process the arguments of the directive. */
+    /* 
+        modify the line pointer to make it easier to process the arguments of the directive. 
+        add 1 to avoid spacing issue
+    */
+    line += index + strlen(directives[label->directive]) + 1; 
     if(*line == 0)
         errx(-1, "DIRECTIVE DOES NOT HAVE A VALUE!");
 

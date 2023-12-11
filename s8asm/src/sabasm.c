@@ -123,7 +123,10 @@ checknumber(label_t *label, char *directive, char *line)
                 label->value[i] = (value & 0xFF00) >> 8;
                 label->value[i + 1] = (value & 0x00FF);
 
-                line += index + 2; /* add two to pass the comma and the space */
+                line += index + 1; /* add two to pass the comma and the space */
+                if(*line == ' ') /* cannot assume that a space is there, if it is, add 1 to the pointer */
+                    line++;
+
                 count--;
                 i += 2;
             }

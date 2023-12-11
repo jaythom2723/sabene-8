@@ -43,6 +43,14 @@
 
 #define NUM_DIRECTIVES                          7
 
+#define DB 0
+#define DW 1
+#define DF 2
+#define RESB 3
+#define RESW 4
+#define RESF 5
+#define EQU 6
+
 static const char *const directives[] = {
     "DB", "DW", "DF", "RESB", "RESW", "RESF", "EQU"
 };
@@ -68,6 +76,7 @@ typedef struct label
     unsigned short address;
     char *name;
     char *value;
+    unsigned char directive;
 } label_t;
 
 typedef struct program 

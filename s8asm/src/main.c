@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <err.h>
 
-char *const get_source(char *path)
+char *const 
+get_source(char *path)
 {
     FILE *file = fopen(path, "r");
     if(file == NULL)
@@ -23,7 +24,8 @@ char *const get_source(char *path)
     return src;
 }
 
-int main(int argc, char **argv)
+int 
+main(int argc, char **argv)
 {
     argc--;
     argv++;
@@ -36,6 +38,7 @@ int main(int argc, char **argv)
     lex(src, program);
 
     free(program);
+    free(src);
 
     return 0;
 }

@@ -85,7 +85,7 @@ typedef struct label
 typedef struct program 
 {
     token_t tokens[255]; /* max 255 tokens (expand later) */
-    label_t labels[255]; /* max 255 labels (expand later) */
+    label_t *labels[255]; /* max 255 labels (expand later) */
     char byteCode[DATA_SEGMENT_SIZE + PROGRAM_SEGMENT_SIZE];
 } program_t;
 

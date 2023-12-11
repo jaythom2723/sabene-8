@@ -35,7 +35,34 @@ main(int argc, char **argv)
         errx(-1, "Source could not be found!");
 
     program_t *program = (program_t *) calloc(1, sizeof(program_t));
+    init(program);
     lex(src, program);
+
+
+    /* destroy existing labels */
+    int i = 0;
+    int j = 0;
+    for(; i < 255; i++)
+    {
+        if(program->labels[i] == NULL)
+            break;
+
+        if(program->labels[i]->value != NULL)
+        {
+            for(j=0; j < sizeof(program->labels[i]->value); j++)
+            {
+                if(program->labels[i]->value[j] == 0)
+                    break;
+
+                printf("%02x ", (unsigned char) (program->labels[i]->value[j]));
+            }
+            printf("\n");
+        }
+
+        free(program->labels[i]->name);
+        free(program->labels[i]->value); /* TODO: remember, we can't always assume value is allocated, remember to check for its existence first before freeing */
+        free(program->labels[i]);
+    }
 
     free(program);
     free(src);

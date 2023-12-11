@@ -8,18 +8,23 @@
 static int getcharcount(char *haystack, char needle);
 
 static void checknumber(label_t *label, char *directive, char *line);
+static void getnumericvalue(char *line, int index, int *value);
+static int getchaystackedgecase(char *line, char needle0, char needle1);
 
 static int getnamelength(char *line);
 static char *getname(int namelen, char *line);
 static void processline(label_t *label, char *line);
 
-static unsigned short createdlabel(label_t *label, char *line);
+static void createdlabel(label_t *label, char *line);
 
 static unsigned char checkfordirective(label_t *label, char *line);
 static unsigned char checkforlabel(char *line);
 
+/* define functions, make it easier to define things */
+static void definebytesrecursive(label_t *label, char *line, int numBytes, int i);
+
 static unsigned short dataptr = 0;                 /* The current byte in data memory (helps with label declaration) */
-static label_t *labelsptr = 0;
+static label_t **labelsptr = 0;
 static token_t *tokensptr = 0;
 
 void 
@@ -41,16 +46,17 @@ void
 labelpass(char *const src, program_t *program)
 {
     char *line = strtok(src, "\n");
-    label_t *label = calloc(1, sizeof(label_t));
 
     while(line != NULL)
     {
+        label_t *label = calloc(1, sizeof(label_t));
+        
         if(checkfordirective(label, line))
         {
-            /* a directive has been found, reserve memory and modify data pointer */
-            int step = createdlabel(label, line);
-
-            dataptr += step;
+            /* a directive has been found, create it's label signature */
+            createdlabel(label, line); /* TODO: What to do about directives not attached to a label? */
+            *labelsptr = label;
+            labelsptr++;
         } else
         {
 
@@ -66,6 +72,61 @@ secondpass(char *const src, program_t *program)
 }
 
 /* STATIC FUNCTION DEFS */
+int
+getchaystackedgecase(char *line, char needle0, char needle1)
+{
+    char *comma = strchr(line, needle0);
+    if(comma == NULL)
+        comma = strchr(line, needle1);
+    return (comma - line);
+}
+
+void 
+getnumericvalue(char *line, int index, int *value)
+{
+    /* Cannot assume hex, bin, or dec, check for them. */
+    if(IS_HEX(line, index))
+        *value = strtol(line, NULL, 16);
+    else if(IS_BIN(line))
+        *value = strtol(line, NULL, 2); /* TODO: prototype binary to decimal conversion */
+    else
+        *value = strtol(line, NULL, 10);
+}
+
+void
+definebytesrecursive(label_t *label, char *line, int numBytes, int i)
+{
+    int numcommas = getcharcount(line, ',');
+    label->value = realloc(label->value, numBytes * numcommas);
+    int value = 0;
+    
+    int index = getchaystackedgecase(line, ',', '\0');
+
+    /* temporary buffer for number */
+    char temp[index];
+    memcpy(temp, line, index);
+    temp[index] = 0;
+
+    getnumericvalue(line, index, &value);
+
+    if(numBytes > 1) /* store information about the directive in little endian (specificall for DW/DF) */
+    {
+        label->value[i] = (value & 0xFF00) >> 8;
+        label->value[i + 1] = (value & 0x00FF);
+    } else          /* store information as a normal byte */
+        label->value[i] = value;
+
+    line += index + 1;
+    if(*line == ' ')
+        line++;
+
+    numcommas--;
+    i += numBytes;
+
+    if(numcommas > 0)
+        definebytesrecursive(label, line, numBytes, i);
+}
+
 int
 getcharcount(char *haystack, char needle)
 {
@@ -87,55 +148,14 @@ checknumber(label_t *label, char *directive, char *line)
     {
         if(strncmp(directive, "DB", 2) == 0)
         {
-
+            label->value = calloc(1, sizeof(char));
+            definebytesrecursive(label, line, 1, 0);
+            /* definebytes(label, line, 1); */
         } else if(strncmp(directive, "DW", 2) == 0)
         {
-            int count = getcharcount(line, ','); /* check for comma separation */
-            label->value = calloc(2 * count, sizeof(char));
-            int value = 0; /* the integral value */
-            char *comma = NULL;
-            int index = 0; /* the index of the comma/null terminator */
-            int i = 0;
-
-            while(count > 0)
-            {
-                comma = strchr(line, ',');
-                index = (comma - line);
-
-                if(comma == NULL)
-                {
-                    comma = strchr(line, '\0'); /* comma not found, look for null terminator instead */
-                    index = (comma - line);
-                }
-
-                char temp[index]; /* create a temporary buffer for the number */
-                memcpy(temp, line, index);
-                temp[index] = 0;
-
-                /* Cannot assume hex, bin, or dec, check for them. */
-                if(IS_HEX(line, index))
-                    value = strtol(line, NULL, 16);
-                else if(IS_BIN(line))
-                    value = strtol(line, NULL, 2); /* TODO: prototype binary to decimal conversion */
-                else
-                    value = strtol(line, NULL, 10);
-
-                label->value[i] = (value & 0xFF00) >> 8;
-                label->value[i + 1] = (value & 0x00FF);
-
-                line += index + 1; /* add two to pass the comma and the space */
-                if(*line == ' ') /* cannot assume that a space is there, if it is, add 1 to the pointer */
-                    line++;
-
-                count--;
-                i += 2;
-            }
-
-            for(i = 0; i < 6; i++)
-            {
-                printf("%02x ", (unsigned char) label->value[i]);
-            }
-            printf("\n");
+            label->value = calloc(2, sizeof(char));
+            definebytesrecursive(label, line, 2, 0);
+            /* definebytes(label, line, 2); */
         } else if(strncmp(directive, "DF", 2) == 0) 
         {
             /* TODO: IEEE 754 standard algorithm */
@@ -187,7 +207,6 @@ processline(label_t *label, char *line)
     int namelen = getnamelength(line);
     char *name = getname(namelen, line); /* temporary name buffer */
 
-    /* get the name of the label and store it into the struct */
     label->name = calloc(namelen, sizeof(char));
     strcpy(label->name, name);
 
@@ -207,15 +226,13 @@ processline(label_t *label, char *line)
     free(name); /* no longer need the temporary name buffer */
 }
 
-unsigned short 
-createdlabel(label_t *label, char *line) /* returns the step for the data ptr */
+void 
+createdlabel(label_t *label, char *line)
 {
     processline(label, line);
 
-    if (label->name == NULL)
-        return 0;
-
-    return 1;
+    if (label->name == NULL || label->value == NULL)
+        return;
 }
 
 unsigned char

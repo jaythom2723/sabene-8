@@ -85,32 +85,54 @@ checknumber(label_t *label, char *directive, char *line)
 {
     if(IS_NUMBER(*line)) /* check if the first character in the line is a number character */
     {
-        /* create a buffer that contains the whole number */
-        char *nt = strchr(line, '\0');
-        int index = (nt - line);
-        char temp[index];
-        memcpy(temp, line, index);
-        temp[index] = 0;
-
         if(strncmp(directive, "DB", 2) == 0)
         {
 
         } else if(strncmp(directive, "DW", 2) == 0)
         {
-            /* Check for comma separated definitions */
-            int count = getcharcount(line, ',');
-            label->value = calloc(2 * count, sizeof(char)); /* TODO: prototype comma-separated word definition */
-            int value = 0; /* the integral value to store into the label's value */
+            int count = getcharcount(line, ','); /* check for comma separation */
+            label->value = calloc(2 * count, sizeof(char));
+            int value = 0; /* the integral value */
+            char *comma = NULL;
+            int index = 0; /* the index of the comma/null terminator */
+            int i = 0;
 
-            /* We cannot assume that the number has the hexadecimal denotifier(s), we must check for them */
-            if(IS_HEX(line, index))
-                value = strtol(line, NULL, 16);
-            else
-                value = strtol(line, NULL, 10);
+            while(count > 0)
+            {
+                comma = strchr(line, ',');
+                index = (comma - line);
 
-            /* Storing the data into the label's value array in little endian format */
-            label->value[0] = (value & 0xFF00) >> 8;
-            label->value[1] = (value & 0x00FF);
+                if(comma == NULL)
+                {
+                    comma = strchr(line, '\0'); /* comma not found, look for null terminator instead */
+                    index = (comma - line);
+                }
+
+                char temp[index]; /* create a temporary buffer for the number */
+                memcpy(temp, line, index);
+                temp[index] = 0;
+
+                /* Cannot assume hex, bin, or dec, check for them. */
+                if(IS_HEX(line, index))
+                    value = strtol(line, NULL, 16);
+                else if(IS_BIN(line))
+                    value = strtol(line, NULL, 2); /* TODO: prototype binary to decimal conversion */
+                else
+                    value = strtol(line, NULL, 10);
+
+                label->value[i] = (value & 0xFF00) >> 8;
+                label->value[i + 1] = (value & 0x00FF);
+
+                line += index + 2; /* add two to pass the comma and the space */
+                count--;
+                i += 2;
+            }
+
+            for(i = 0; i < 6; i++)
+            {
+                printf("%02x ", (unsigned char) label->value[i]);
+            }
+            printf("\n");
         } else if(strncmp(directive, "DF", 2) == 0) 
         {
             /* TODO: IEEE 754 standard algorithm */

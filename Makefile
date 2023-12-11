@@ -25,5 +25,5 @@ $(BUILD_DIR)/sabene.out: $(wildcard $(SRC_DIR)/*.c)
 	$(CC) $(STD) $(PPFLAGS) $^ $(LDFLAGS) -o $@
 
 .PHONY: clean
-clean: $(BUILD_DIR)/sabene.out
+clean: $(BUILD_DIR)/sabene.out $(BUILD_DIR)/s8asm.out
 	rm -f $^

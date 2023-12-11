@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         errx(-1, "Source could not be found!");
 
     program_t *program = (program_t *) calloc(1, sizeof(program_t));
-    lex(program);
+    lex(src, program);
 
     free(program);
 

@@ -38,6 +38,19 @@
 #define VIDEO_DATA_SEGMENT_SIZE                 (VIDEO_DATA_SEGMENT_LIMIT - VIDEO_DATA_SEGMENT_BASE)
 #define FREE_SEGMENT_SIZE                       (FREE_SEGMENT_LIMIT - FREE_SEGMENT_BASE)
 
+#define END_CHARACTERS(chr)                     chr == '\n' || chr == '\0' || chr == 13
+#define WHITESPACE_CHARACTER_CHECK(chr)         chr == ' ' || chr == '\n' || chr == '\0' || chr == 13 || chr == '\t'
+
+#define NUM_DIRECTIVES                          7
+
+static const char *const directives[] = {
+    "DB", "DW", "DF", "RESB", "RESW", "RESF", "EQU"
+};
+
+static const char *const instructions[] = {
+
+};
+
 typedef enum token_type
 {
     IDENTIFIER, INSTRUCTION, SEPARATOR, PUNCTUATOR, OPERATOR, LITERAL,
@@ -47,13 +60,13 @@ typedef enum token_type
 typedef struct token 
 {
     unsigned char ttype; /* Token Type */
-    const char *value; /* Value of the token */
+    char *value; /* Value of the token */
 } token_t;
 
 typedef struct label
 {
     unsigned short address;
-    const char *name;
+    char *name;
     char *value;
 } label_t;
 

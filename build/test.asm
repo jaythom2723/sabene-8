@@ -1,4 +1,6 @@
 thisisalabel:
 label2:
-thisisalabelaswell
-woop_woop
+testlabel:				DF
+another_label:			RESB
+thisisalabelaswell      DB
+woop_woop               RESW

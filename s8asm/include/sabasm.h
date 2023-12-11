@@ -3,9 +3,11 @@
 
 #include "asmdefs.h"
 
-void lex(program_t *program);         /* Calls labelpass, secondpass internally */
+void init(program_t *program);
 
-void labelpass();                     /* Check for labels/variables/constants */
-void secondpass();                    /* Lexalize rest of lines */
+void lex(char *const src, program_t *program);         /* Calls labelpass, secondpass internally */
+
+void labelpass(char *const src, program_t *program);                     /* Check for labels/variables/constants */
+void secondpass(char *const src, program_t *program);                    /* Lexalize rest of lines */
 
 #endif /* SAB_ASM_H */

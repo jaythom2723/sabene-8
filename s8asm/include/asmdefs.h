@@ -40,6 +40,9 @@
 
 #define END_CHARACTERS(chr)                     chr == '\n' || chr == '\0' || chr == 13
 #define WHITESPACE_CHARACTER_CHECK(chr)         chr == ' ' || chr == '\n' || chr == '\0' || chr == 13 || chr == '\t'
+#define IS_NUMBER(chr)                          chr == '1' || chr == '2' || chr == '3' || chr == '4' || chr == '5' || chr == '6' || chr == '7' || chr == '8' || chr == '9' || chr == '0'
+#define IS_HEX(str, lastchr)                    *(str + 1) == 'x' || str[lastchr - 1] == 'h'
+#define IS_BIN(str)                             *(str + 1) == 'b'
 
 #define NUM_DIRECTIVES                          7
 

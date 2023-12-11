@@ -13,7 +13,7 @@ get_source(char *path)
         return NULL;
 
     fseek(file, 0l, SEEK_END);
-    size_t size = ftell(file);
+    size_t size = ftell(file) + 1;
     rewind(file);
 
     char *const src = calloc(size, sizeof(char));

@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /* get the total number of occurences of needle in haystack. */
 static int getcharcount(char *haystack, char needle);
 
 static void checknumber(label_t *label, char *directive, char *line);
+static void convertbintodec(char *binvalue, int *value);
 static void getnumericvalue(char *line, int index, int *value);
 static int getchaystackedgecase(char *line, char needle0, char needle1);
 
@@ -20,7 +22,6 @@ static void createdlabel(label_t *label, char *line);
 static unsigned char checkfordirective(label_t *label, char *line);
 static unsigned char checkforlabel(char *line);
 
-/* define functions, make it easier to define things */
 static void definebytesrecursive(label_t *label, char *line, int numBytes, int i);
 
 static unsigned short dataptr = 0;                 /* The current byte in data memory (helps with label declaration) */
@@ -72,6 +73,20 @@ secondpass(char *const src, program_t *program)
 }
 
 /* STATIC FUNCTION DEFS */
+void
+convertbintodec(char *binvalue, int *value)
+{
+    binvalue += 2; /* assume first two characters are binary denotifier and skip them */
+
+    int digitindex = strlen(binvalue) - 1;  /* the digit index we're currently looking at */
+    int i = 0;                              /* the index for the string */
+    for(; i < strlen(binvalue) - 1; i++)
+    {
+        (*value) += (binvalue[i] - '0') * pow(2, digitindex);
+        digitindex--;
+    }
+}
+
 int
 getchaystackedgecase(char *line, char needle0, char needle1)
 {
@@ -84,11 +99,11 @@ getchaystackedgecase(char *line, char needle0, char needle1)
 void 
 getnumericvalue(char *line, int index, int *value)
 {
-    /* Cannot assume hex, bin, or dec, check for them. */
+    /* Cannot assume hex, bin, dec, or float, check for them. */
     if(IS_HEX(line, index))
         *value = strtol(line, NULL, 16);
     else if(IS_BIN(line))
-        *value = strtol(line, NULL, 2); /* TODO: prototype binary to decimal conversion */
+        convertbintodec(line, value);
     else
         *value = strtol(line, NULL, 10);
 }
@@ -107,7 +122,7 @@ definebytesrecursive(label_t *label, char *line, int numBytes, int i)
     memcpy(temp, line, index);
     temp[index] = 0;
 
-    getnumericvalue(line, index, &value);
+    getnumericvalue(temp, index, &value);
 
     if(numBytes > 1) /* store information about the directive in little endian (specificall for DW/DF) */
     {
@@ -150,12 +165,10 @@ checknumber(label_t *label, char *directive, char *line)
         {
             label->value = calloc(1, sizeof(char));
             definebytesrecursive(label, line, 1, 0);
-            /* definebytes(label, line, 1); */
         } else if(strncmp(directive, "DW", 2) == 0)
         {
             label->value = calloc(2, sizeof(char));
             definebytesrecursive(label, line, 2, 0);
-            /* definebytes(label, line, 2); */
         } else if(strncmp(directive, "DF", 2) == 0) 
         {
             /* TODO: IEEE 754 standard algorithm */

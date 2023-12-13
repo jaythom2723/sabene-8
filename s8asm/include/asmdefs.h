@@ -46,20 +46,31 @@
 
 #define NUM_DIRECTIVES                          7
 
-#define DB 0
-#define DW 1
-#define DF 2
-#define RESB 3
-#define RESW 4
-#define RESF 5
-#define EQU 6
+#define DB                                      0
+#define DW                                      1
+#define DF                                      2
+#define RESB                                    3
+#define RESW                                    4
+#define RESF                                    5
+#define EQU                                     6
 
 static const char *const directives[] = {
     "DB", "DW", "DF", "RESB", "RESW", "RESF", "EQU"
 };
 
 static const char *const instructions[] = {
-
+    "MOV", "STR", "RD", /* moving data into/out of reigster/memory */
+    "ADD", "SUB", "DIV", "MUL", "AND", "XOR", "OR", "CMP", /* ALU instructions */ 
+    "JMP", "JEQ", "JNQ", "JC", "JNC", "JL", "JNL", "JLE", "JNLE", "JG", "JNG", "JGE", "JNGE", /* modify program counter directly */
+    "INT", /* call a kernel-specific pre-built function. */
+    "PUSH", "POP", /* push/pop a value to/from stack (first in last out) */
+    "CALL", "RET", /* modify the program counter briefly, make sure to store the program counter to the stack */
+    "HLT", /* stop all cpu function */
+    "BIR", /* modify the bus interface register */
+    "INC", "DEC", /* increment/decrement address,register,value */
+    "PUSHA", /* push all register values to the stack */
+    "CALLZ", "CALLNZ", "CALLC", "CALLNC", "CALLL", "CALLNL", "CALLLE", "CALLNLE", "CALLG", "CALLNG", "CALLGE", "CALLNGE", /* conditional call */
+    "CMVZ", "CMVNZ", "CMVC", "CMVNC", "CMVL", "CMVNL", "CMVLE", "CMVNLE", "CMVG", "CMVNG", "CMVGE", "CMVNGE", /* conditional moving */
 };
 
 typedef enum token_type

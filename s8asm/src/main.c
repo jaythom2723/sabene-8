@@ -49,6 +49,7 @@ main(int argc, char **argv)
 
         if(program->labels[i]->value != NULL)
         {
+            printf("%s ", program->labels[i]->name);
             for(j=0; j < sizeof(program->labels[i]->value); j++)
             {
                 if(program->labels[i]->value[j] == 0)
